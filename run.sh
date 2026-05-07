@@ -5,15 +5,15 @@
 #   ./run.sh            # build & run
 #   ./run.sh --build    # force a clean rebuild even if the jar already exists
 #
-# The Java app connects to localhost:5432.  When it runs inside Docker we share
-# the pgdemo container's network namespace so "localhost" resolves correctly.
+# The Java app connects to localhost:5433.  When it runs inside Docker we share
+# the sql container's network namespace so "localhost" resolves correctly.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MAVEN_IMAGE="maven:3.9-eclipse-temurin-11"
-PG_CONTAINER="pgdemo"
+PG_CONTAINER="postgres_db"
 JAR="target/sql-transactions.jar"
 FORCE_BUILD=false
 
@@ -35,14 +35,15 @@ if ! docker inspect --format '{{.State.Running}}' "$PG_CONTAINER" 2>/dev/null | 
   echo ""
   echo "Start it with:"
   echo "  docker run --name $PG_CONTAINER \\"
-  echo "    -e POSTGRES_PASSWORD=postgres \\"
-  echo "    -p 5432:5432 \\"
+  echo "    -e POSTGRES_USER=user \\"
+  echo "    -e POSTGRES_PASSWORD=password \\"
+  echo "    -e POSTGRES_DB=mydb \\"
+  echo "    -p 5433:5432 \\"
   echo "    -d postgres:16"
   echo ""
   echo "Then load the schema and seed data:"
-  echo "  docker exec -i $PG_CONTAINER psql -U postgres -c \"CREATE DATABASE projectdb;\""
-  echo "  docker exec -i $PG_CONTAINER psql -U postgres -d projectdb < sql/schema.sql"
-  echo "  docker exec -i $PG_CONTAINER psql -U postgres -d projectdb < sql/data.sql"
+  echo "  docker exec -i $PG_CONTAINER psql -U user -d mydb < sql/schema.sql"
+  echo "  docker exec -i $PG_CONTAINER psql -U user -d mydb < sql/data.sql"
   exit 1
 fi
 
