@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public class DBConnection {
 
     private static final String HOST     = "localhost";
-    private static final String PORT     = "5433";
+    private static final String PORT     = "5432";
     private static final String DATABASE = "mydb";
     private static final String USER     = "user";
     private static final String PASSWORD = "password";

@@ -5,8 +5,9 @@
 #   ./run.sh            # build & run
 #   ./run.sh --build    # force a clean rebuild even if the jar already exists
 #
-# The Java app connects to localhost:5433.  When it runs inside Docker we share
-# the sql container's network namespace so "localhost" resolves correctly.
+# The Java app connects to localhost:5432.  When it runs inside Docker we share
+# the postgres container's network namespace so "localhost:5432" resolves to the
+# Postgres process directly (5433 is only the host-mapped port, not visible inside).
 
 set -euo pipefail
 
@@ -60,6 +61,12 @@ if [ "$FORCE_BUILD" = true ] || [ ! -f "${SCRIPT_DIR}/${JAR}" ]; then
 else
   echo "Jar already exists (${JAR}). Skipping build. Use --build to force rebuild."
 fi
+
+# ── schema + seed phase ───────────────────────────────────────────────────────
+echo "Resetting schema and seeding data..."
+docker exec -i "$PG_CONTAINER" psql -U user -d mydb < "${SCRIPT_DIR}/sql/schema.sql"
+docker exec -i "$PG_CONTAINER" psql -U user -d mydb < "${SCRIPT_DIR}/sql/data.sql"
+echo "Schema and data loaded."
 
 # ── run phase ─────────────────────────────────────────────────────────────────
 echo ""
